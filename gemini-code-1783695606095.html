@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Avanzado Andreani</title>
+    <style>
+        :root{
+            --navy-900:#0b1f3a;
+            --navy-800:#122b4d;
+            --navy-700:#16345c;
+            --navy-600:#1f4a7a;
+            --slate-50:#f4f6f9;
+            --slate-100:#eef1f5;
+            --slate-200:#e2e8f0;
+            --slate-300:#cbd5e1;
+            --slate-500:#64748b;
+            --slate-700:#334155;
+            --slate-900:#1e293b;
+            --green-500:#12b981;
+            --green-600:#0ea371;
+            --green-50:#e9faf3;
+            --white:#ffffff;
+            --radius-lg:16px;
+            --radius-md:10px;
+            --shadow-card:0 1px 2px rgba(15,32,58,0.04), 0 12px 32px -12px rgba(15,32,58,0.12);
+            --shadow-input:0 1px 2px rgba(15,32,58,0.04);
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+
+        *{ box-sizing: border-box; }
+
+        body{
+            font-family: var(--font);
+            margin:0;
+            min-height:100vh;
+            background:
+                radial-gradient(1200px 600px at 15% -10%, rgba(31,74,122,0.10), transparent 60%),
+                radial-gradient(900px 500px at 100% 0%, rgba(18,185,129,0.06), transparent 55%),
+                var(--slate-50);
+            color: var(--slate-900);
+            padding: 40px 20px 60px;
+        }
+
+        .shell{
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        /* ---------- Header ---------- */
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:14px;
+            margin-bottom: 22px;
+        }
+        .brand-mark{
+            width:42px;
+            height:42px;
+            border-radius: 11px;
+            background: linear-gradient(145deg, var(--navy-700), var(--navy-900));
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            box-shadow: 0 6px 16px -4px rgba(11,31,58,0.45);
+            flex-shrink:0;
+        }
+        .brand-mark svg{ width:22px; height:22px; }
+        .brand-text h1{
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--navy-900);
+            margin:0;
+        }
+        .brand-text p{
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: var(--slate-500);
+        }
+
+        /* ---------- Step rail ---------- */
+        .steps{
+            display:flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .step{
+            flex:1;
+            display:flex;
+            align-items:center;
+            gap:9px;
+            padding: 11px 14px;
+            background: var(--white);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-md);
+        }
+        .step-num{
+            width:22px; height:22px;
+            border-radius:50%;
+            background: var(--slate-100);
+            color: var(--slate-500);
+            font-size:12px;
+            font-weight:700;
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0;
+        }
+        .step.is-active .step-num{
+            background: var(--navy-900);
+            color:#fff;
+        }
+        .step-label{
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--slate-700);
+        }
+
+        /* ---------- Card ---------- */
+        .card{
+            background: var(--white);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 32px 32px 30px;
+        }
+
+        .card-intro{
+            margin: 0 0 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--slate-100);
+        }
+        .card-intro h2{
+            margin:0 0 6px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy-900);
+            letter-spacing: -0.01em;
+        }
+        .card-intro p{
+            margin:0;
+            font-size: 13.5px;
+            color: var(--slate-500);
+            line-height:1.5;
+        }
+
+        fieldset{
+            border:0;
+            padding:0;
+            margin:0 0 22px;
+        }
+        .fieldset-label{
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--slate-500);
+            margin: 0 0 12px;
+        }
+
+        label{
+            font-weight: 600;
+            font-size: 13px;
+            display:block;
+            margin-bottom: 6px;
+            color: var(--slate-700);
+        }
+
+        input[type="text"], input[type="number"], textarea{
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--slate-300);
+            border-radius: var(--radius-md);
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: var(--font);
+            color: var(--slate-900);
+            background: var(--white);
+            box-shadow: var(--shadow-input);
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+        input::placeholder, textarea::placeholder{ color: #a3aebd; }
+
+        input:hover, textarea:hover{ border-color: var(--slate-500); }
+
+        input:focus, textarea:focus{
+            outline: none;
+            border-color: var(--navy-600);
+            box-shadow: 0 0 0 4px rgba(31,74,122,0.13);
+        }
+
+        textarea{
+            height: 170px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.55;
+            background-color: var(--slate-50);
+            resize: vertical;
+        }
+
+        .row{
+            display: flex;
+            gap: 16px;
+            margin-bottom: 0;
+        }
+        .col{ flex: 1; }
+
+        .field{ margin-bottom: 18px; }
+        .field:last-child{ margin-bottom: 0; }
+
+        /* ---------- Actions container ---------- */
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        /* ---------- Buttons ---------- */
+        button{
+            font-family: var(--font);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 14.5px;
+            font-weight: 700;
+            transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:9px;
+        }
+        button:active{ transform: translateY(1px); }
+
+        .btn-primary{
+            flex: 2;
+            background: linear-gradient(180deg, var(--navy-700), var(--navy-900));
+            color: #fff;
+            padding: 15px;
+            box-shadow: 0 10px 22px -10px rgba(11,31,58,0.55);
+        }
+        .btn-primary:hover{ background: linear-gradient(180deg, var(--navy-600), var(--navy-800)); }
+
+        .btn-clear {
+            flex: 1;
+            background: var(--slate-200);
+            color: var(--slate-700);
+            padding: 15px;
+            border: 1px solid var(--slate-300);
+        }
+        .btn-clear:hover {
+            background: var(--slate-300);
+            color: var(--slate-900);
+        }
+
+        /* ---------- Result ---------- */
+        .result-box{
+            margin-top: 26px;
+            display: none;
+            background: var(--green-50);
+            padding: 22px;
+            border: 1px solid #b7ecd6;
+            border-radius: var(--radius-lg);
+            animation: resultIn .35s ease;
+        }
+        @keyframes resultIn{
+            from{ opacity: 0; transform: translateY(6px); }
+            to{ opacity: 1; transform: translateY(0); }
+        }
+        .result-head{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom: 6px;
+        }
+        .result-check{
+            width: 24px; height:24px;
+            border-radius:50%;
+            background: var(--green-500);
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0;
+        }
+        .result-check svg{ width:13px; height:13px; }
+        .result-box h3{
+            margin:0;
+            font-size: 15.5px;
+            font-weight:700;
+            color: #0b5c40;
+        }
+        .result-box > p{
+            font-size: 13px;
+            color: #2f6b53;
+            margin: 0 0 14px;
+            line-height: 1.5;
+        }
+        .result-box b{ color:#0b5c40; }
+
+        #outputLine{
+            background-color: #fff;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            width: 100%;
+            padding: 12px 13px;
+            border: 1px solid #b7ecd6;
+            border-radius: var(--radius-md);
+            color: var(--slate-700);
+            margin-bottom: 14px;
+        }
+        #outputLine:focus{
+            box-shadow: 0 0 0 4px rgba(18,185,129,0.15);
+            border-color: var(--green-500);
+        }
+
+        .btn-copy{
+            background: var(--green-500);
+            color: #fff;
+            padding: 13px;
+            margin-top: 0;
+            width: 100%;
+            box-shadow: 0 10px 20px -10px rgba(18,185,129,0.55);
+            transition: background 0.2s;
+        }
+        .btn-copy:hover{ background: var(--green-600); }
+        .btn-copy.copied{ background-color: #0b5c40; }
+
+        @media (max-width: 560px){
+            .card{ padding: 24px 20px; }
+            .row{ flex-direction: column; gap: 18px; }
+            .steps{ flex-direction: column; }
+            .actions-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="shell">
+
+    <div class="brand">
+        <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 17L10 5L14 13L17 7L20 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h1>Andreani &middot; Logística</h1>
+            <p>Conversor inteligente de WhatsApp a fila de SharePoint</p>
+        </div>
+    </div>
+
+    <div class="steps">
+        <div class="step is-active">
+            <span class="step-num">1</span>
+            <span class="step-label">Datos generales</span>
+        </div>
+        <div class="step is-active">
+            <span class="step-num">2</span>
+            <span class="step-label">Pegar WhatsApp</span>
+        </div>
+        <div class="step is-active">
+            <span class="step-num">3</span>
+            <span class="step-label">Copiar fila</span>
+        </div>
+    </div>
+
+    <div class="card">
+
+        <div class="card-intro">
+            <h2>Generar fila horizontal</h2>
+            <p>Ingresá los datos generales, la Razón Social y pegá el texto de WhatsApp tal como lo recibiste.</p>
+        </div>
+
+        <fieldset>
+            <p class="fieldset-label">Empresa</p>
+            <div class="field">
+                <label for="razonSocial">Razón Social (Nombre del Cliente / Empresa)</label>
+                <input type="text" id="razonSocial" placeholder="Ej: GRUPO MASTROIANNI S.A" value="">
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <p class="fieldset-label">Envío</p>
+            <div class="row">
+                <div class="col field">
+                    <label for="pares">Cantidad de pares</label>
+                    <input type="number" id="pares" value="1" min="1">
+                </div>
+                <div class="col field">
+                    <label for="qm">Aviso QM / Nro interno</label>
+                    <input type="text" id="qm" placeholder="Ej: 200074066">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <p class="fieldset-label">Mensaje de WhatsApp</p>
+            <div class="field">
+                <label for="whatsapp">Pegá acá todo el texto de WhatsApp</label>
+                <textarea id="whatsapp" placeholder="Pegá el formato con o sin etiquetas acá..."></textarea>
+            </div>
+        </fieldset>
+
+        <div class="actions-row">
+            <button onclick="procesarTextoInteligente()" class="btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L4 14H12L11 22L20 10H12L13 2Z" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/></svg>
+                Generar fila horizontal
+            </button>
+            <button onclick="limpiarCamposFormulario()" class="btn-clear">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86723 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpiar campos
+            </button>
+        </div>
+
+        <div id="resultBox" class="result-box">
+            <div class="result-head">
+                <div class="result-check">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12L9 17L20 6" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h3>¡Fila generada con éxito!</h3>
+            </div>
+            <p>Hacé clic abajo para copiar. Después en SharePoint dale a <b>Pegar</b> (Ctrl + V) en la primera celda (Columna A).</p>
+            <input type="text" id="outputLine" readonly>
+            <button id="btnCopy" onclick="copiarContenido()" class="btn-copy">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="11" height="11" rx="2" stroke="#ffffff" stroke-width="2"/><path d="M5 15H4C3.44772 15 3 14.5523 3 14V4C3 3.44772 3.44772 3 4 3H14C14.5523 3 15 3.44772 15 4V5" stroke="#ffffff" stroke-width="2"/></svg>
+                <span id="btnText">Copiar fila horizontal</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function procesarTextoInteligente() {
+    const razonSocial = document.getElementById('razonSocial').value.trim() || "Cliente";
+    const pares = parseFloat(document.getElementById('pares').value) || 0;
+    const qm = document.getElementById('qm').value.trim();
+    const textoOriginal = document.getElementById('whatsapp').value;
+
+    if (!textoOriginal) { alert('Por favor, pegá el texto primero.'); return; }
+
+    const datos = {
+        calle: "",
+        numero: "",
+        localidad: "",
+        provincia: "BUENOS AIRES",
+        cp: "",
+        contacto: "",
+        telefono: "",
+        horario: "",
+        bultos: 1,
+        mail: ""
+    };
+
+    let textoLimpio = textoOriginal
+        .replace(/(?:dirección\(detallada\)|dirección completa|dirección|direccion)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:localidad)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:provincia)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:código postal|codigo postal|cod\. postal|cp)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:nombre y teléfono de contacto|nombre y telefono de contacto|nombre y contacto)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:franja horaria disponible|rangos horarios retiro|horario disponible|horario)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:cantidad de bultos\/cajas|cantidad de bultos|bultos|cajas)\s*[:\-–—]\s*/i, "")
+        .replace(/(?:correo electrónico de referencia|correo electronico|mail de referencia|mail|email)\s*[:\-–—]\s*/i, "");
+
+    const lineas = textoLimpio.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+    for (const lineaOriginal of lineas) {
+        const linea = lineaOriginal.trim();
+        if (!linea) continue;
+
+        if (linea.includes("@")) {
+            const matchMail = linea.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+            if (matchMail) {
+                datos.mail = matchMail[0].trim();
+            }
+            continue;
+        }
+
+        if (/lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo|hs|horas/i.test(linea)) {
+            datos.horario = linea;
+            continue;
+        }
+
+        if (/bulto|bultos|caja|cajas/i.test(linea)) {
+            const m = linea.match(/\d+/);
+            datos.bultos = m ? parseInt(m[0]) : 1;
+            continue;
+        }
+
+        // --- BLOQUE ACTUALIZADO ---
+        if (/\(\d{4}\)/.test(linea) || (/\d{4}/.test(linea) && !linea.includes("/"))) {
+            const cpMatch = linea.match(/\d{4}/);
+            if (cpMatch) {
+                datos.cp = cpMatch[0];
+                datos.localidad = linea
+                    .replace(/\(?\d{4}\)?/, "")
+                    .replace(/,/g, "")
+                    .replace(/[\(\)]/g, "")
+                    .trim()
+                    .toUpperCase();
+                continue;
+            }
+        }
+        // --------------------------
+
+        if (/(\+?54)?[\s\-\/]*\d{2,4}[\s\-\/]*\d{3,4}[\s\-\/]*\d{3,4}/.test(linea)) {
+            datos.telefono = linea.replace(/\D/g, "");
+            const matchSoloTel = linea.match(/(\+?54)?[\s\-\/]*\d{2,4}[\s\-\/]*\d{3,4}[\s\-\/]*\d{3,4}/);
+            if (matchSoloTel) {
+                datos.contacto = linea.replace(matchSoloTel[0], "").replace(/[\/\-\d()]+/g, "").trim();
+            }
+            continue;
+        }
+
+        if (!datos.contacto && /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/.test(linea) && linea.split(" ").length >= 2) {
+            datos.contacto = linea.trim();
+            continue;
+        }
+
+        if (!datos.calle && /^[A-Za-zÁÉÍÓÚÑáéíóúñ0-9 .,'-]+?\s\d{1,5}[A-Za-z]?$/.test(linea)) {
+            const m = linea.match(/^(.*?)[\s,]+(\d{1,5}[A-Za-z]?)$/);
+            if (m) {
+                datos.calle = m[1].trim();
+                datos.numero = m[2];
+            } else {
+                datos.calle = linea.trim();
+            }
+            continue;
+        }
+    }
+
+    for (let i = 0; i < lineas.length - 1; i++) {
+        if (!datos.contacto && /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/.test(lineas[i]) && /\d/.test(lineas[i+1]) && !lineas[i+1].includes("@")) {
+            datos.contacto = lineas[i].trim();
+            datos.telefono = lineas[i+1].replace(/\D/g, "");
+        }
+    }
+
+    if (!datos.calle && lineas.length > 0) {
+        const fallbackDir = lineas[0];
+        const m = fallbackDir.match(/^(.*?)[\s,]+(\d{1,5}[A-Za-z]?)$/);
+        if (m) {
+            datos.calle = m[1].trim();
+            datos.numero = m[2];
+        } else {
+            datos.calle = fallbackDir.trim();
+        }
+    }
+
+    if (datos.telefono.startsWith("549") && datos.telefono.length > 10) {
+        datos.telefono = datos.telefono.substring(3);
+    } else if (datos.telefono.startsWith("54") && datos.telefono.length > 10) {
+        datos.telefono = datos.telefono.substring(2);
+    }
+
+    const peso = (pares * 4.05).toFixed(2).replace('.', ',');
+    const valorDeclarado = pares * 75000;
+    const provinciaLocalidadCP = `${datos.provincia.toUpperCase()} / ${datos.localidad.toUpperCase()} / ${datos.cp}`;
+
+    const fila = [
+        peso,
+        "1",
+        "1",
+        "1",
+        valorDeclarado,
+        datos.bultos,
+        qm,
+        qm,
+        "",
+        "",
+        datos.calle,
+        datos.numero,
+        "",
+        "",
+        provinciaLocalidadCP,
+        razonSocial,
+        datos.contacto || "Cliente",
+        "11111111",
+        datos.telefono,
+        datos.mail,
+        datos.horario || "Lunes a Viernes",
+        razonSocial
+    ];
+
+    document.getElementById('outputLine').value = fila.join('\t');
+    document.getElementById('resultBox').style.width = '100%';
+    document.getElementById('resultBox').style.display = 'block';
+
+    const btnCopy = document.getElementById("btnCopy");
+    const btnText = document.getElementById("btnText");
+    btnCopy.classList.remove("copied");
+    btnText.innerText = "Copiar fila horizontal";
+}
+
+function copiarContenido() {
+    const copyText = document.getElementById("outputLine");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    
+    const btnCopy = document.getElementById("btnCopy");
+    const btnText = document.getElementById("btnText");
+    
+    btnCopy.classList.add("copied");
+    btnText.innerText = "¡Copiado con éxito! 🗸";
+}
+
+function limpiarCamposFormulario() {
+    document.getElementById('razonSocial').value = "";
+    document.getElementById('pares').value = "1";
+    document.getElementById('qm').value = "";
+    document.getElementById('whatsapp').value = "";
+    document.getElementById('resultBox').style.display = 'none';
+    document.getElementById('outputLine').value = "";
+}
+</script>
+
+</body>
+</html>
