@@ -239,6 +239,16 @@
         }
         .btn-primary:hover{ background: linear-gradient(180deg, var(--navy-600), var(--navy-800)); }
 
+        .btn-secondary {
+            background: var(--navy-600);
+            color: #fff;
+            padding: 13px 20px;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px -4px rgba(31,74,122,0.4);
+        }
+        .btn-secondary:hover { background: var(--navy-700); }
+
         .btn-clear {
             flex: 1;
             background: var(--slate-200);
@@ -448,6 +458,20 @@
                 <label for="whatsapp">Pegá acá todo el texto de WhatsApp</label>
                 <textarea id="whatsapp" placeholder="Pegá el formato con o sin etiquetas acá..."></textarea>
             </div>
+            
+            <!-- NUEVO BOTÓN AGREGADO AQUÍ -->
+            <button type="button" onclick="ordenarInformacion()" class="btn-secondary">
+                Ordenar información
+            </button>
+        </fieldset>
+
+        <!-- NUEVO TEXTAREA DE VISTA PREVIA / INFORMACIÓN ORDENADA -->
+        <fieldset style="margin-top: 22px;">
+            <p class="fieldset-label">Información ordenada (Editable)</p>
+            <div class="field">
+                <label for="textoOrdenado">Revisá y editá la información estructurada antes de generar la fila</label>
+                <textarea id="textoOrdenado" placeholder="Aquí aparecerá la información estructurada lista para revisar..."></textarea>
+            </div>
         </fieldset>
 
         <div class="actions-row">
@@ -492,6 +516,207 @@
 </div>
 
 <script>
+// --- NUEVAS FUNCIONES DE PARSEO Y ORDENAMIENTO ---
+
+function extraerDireccion(texto) {
+    // Busca líneas con Dirección, Calle o similar, unificando saltos de línea
+    const lineas = texto.split('\n');
+    let textoDir = "";
+    for (let i = 0; i < lineas.length; i++) {
+        if (/direcci[oó]n|calle/i.test(lineas[i])) {
+            textoDir = lineas[i];
+            // Si la línea siguiente existe y no tiene etiqueta, podría ser parte de la dirección
+            if (i + 1 < lineas.length && !lineas[i+1].includes(':')) {
+                textoDir += " " + lineas[i+1];
+            }
+            break;
+        }
+    }
+    if (!textoDir) {
+        // Intentar buscar cualquier texto que tenga números al final
+        textoDir = lineas.find(l => /\d+/.test(l) && !/cp|postal|tel|mail|bultos/i.test(l)) || "";
+    }
+
+    // Limpiar etiqueta inicial si la trae
+    textoDir = textoDir.replace(/^[a-zA-ZáéíóúÁÉÍÓÚ\s\(\)]+:\s*/, '').trim();
+
+    // Separar siempre el último número como número de puerta
+    const match = textoDir.match(/^(.*?)\s+(\d+)$/);
+    if (match) {
+        return {
+            calle: match[1].trim(),
+            numero: match[2].trim()
+        };
+    }
+    return { calle: textoDir, numero: "" };
+}
+
+function extraerContacto(texto) {
+    const lineas = texto.split('\n');
+    let contactoLinea = "";
+    for (let linea of lineas) {
+        if (/contacto|nombre|tel[eé]fono/i.test(linea) && !/mail|correo/i.test(linea)) {
+            contactoLinea = linea;
+            break;
+        }
+    }
+    if (!contactoLinea) {
+        contactoLinea = lineas.find(l => /\d{6,}/.test(l)) || "";
+    }
+
+    contactoLinea = contactoLinea.replace(/^[a-zA-ZáéíóúÁÉÍÓÚ\s\(\)]+:\s*/, '').trim();
+
+    // Remover números telefónicos largos del final para dejar solo el nombre de la persona
+    const match = contactoLinea.match(/^(.*?)([\d\s\-\(\)]{8,}$)/);
+    if (match) {
+        return match[1].trim();
+    }
+    return contactoLinea;
+}
+
+function extraerTelefono(texto) {
+    const lineas = texto.split('\n');
+    let telefonoLinea = "";
+    for (let linea of lineas) {
+        if (/tel[eé]fono|contacto/i.test(linea)) {
+            telefonoLinea = linea;
+            break;
+        }
+    }
+    if (!telefonoLinea) {
+        telefonoLinea = texto;
+    }
+
+    // Buscar una cadena de números telefónicos válidos
+    const matchTel = telefonoLinea.match(/([\d\s\-\(\)]{8,})/);
+    if (matchTel) {
+        return matchTel[0].trim().replace(/\D/g, ""); // Normalizado según el formato actual (solo dígitos)
+    }
+    return "";
+}
+
+function extraerMail(texto) {
+    const lineas = texto.split('\n');
+    let mailLinea = "";
+    for (let linea of lineas) {
+        if (/mail|correo|@/i.test(linea)) {
+            mailLinea = linea;
+            break;
+        }
+    }
+    if (!mailLinea) return "";
+
+    mailLinea = mailLinea.replace(/^[a-zA-ZáéíóúÁÉÍÓÚ\s\(\)]+:\s*/, '').trim();
+    
+    // Si existen varios correos separados por barra u otros caracteres, tomar únicamente el primero
+    const partes = mailLinea.split(/[\/\,\s]+/);
+    const primerMail = partes.find(p => p.includes('@')) || partes[0] || "";
+    return primerMail.trim();
+}
+
+function extraerHorario(texto) {
+    const lineas = texto.split('\n');
+    let horarioLinea = "";
+    for (let linea of lineas) {
+        if (/horario|retiro|lunes|d[ií]as/i.test(linea)) {
+            horarioLinea = linea;
+            break;
+        }
+    }
+    if (!horarioLinea) return "";
+
+    horarioLinea = horarioLinea.replace(/^[a-zA-ZáéíóúÁÉÍÓÚ\s\(\)]+:\s*/, '').trim();
+    
+    // Normalizar la primera letra en mayúscula si se desea, o dejar el texto limpio
+    if (horarioLinea.length > 0) {
+        horarioLinea = horarioLinea.charAt(0).toUpperCase() + horarioLinea.slice(1);
+    }
+    return horarioLinea;
+}
+
+function extraerBultos(texto) {
+    const lineas = texto.split('\n');
+    let bultosLinea = "";
+    for (let linea of lineas) {
+        if (/bultos|cajas|paquetes|pallets|cantidad/i.test(linea)) {
+            bultosLinea = linea;
+            break;
+        }
+    }
+    if (!bultosLinea) bultosLinea = texto;
+
+    // Extraer solamente el número de bultos/cajas/paquetes/pallets
+    const match = bultosLinea.match(/(\d+)/);
+    return match ? match[1] : "1";
+}
+
+function extraerLocalidadYProvinciaYCP(texto) {
+    const lineas = texto.split('\n');
+    let localidad = "", provincia = "", cp = "";
+
+    for (let linea of lineas) {
+        const lower = linea.toLowerCase();
+        if (lower.includes('localidad')) {
+            localidad = linea.split(':')[1] ? linea.split(':')[1].trim() : '';
+            // Si la localidad quedó partida en la siguiente línea
+            const idx = lineas.indexOf(linea);
+            if (idx + 1 < lineas.length && !lineas[idx+1].includes(':')) {
+                localidad += " " + lineas[idx+1].trim();
+            }
+        }
+        if (lower.includes('provincia')) {
+            provincia = linea.split(':')[1] ? linea.split(':')[1].trim() : '';
+            const idx = lineas.indexOf(linea);
+            if (idx + 1 < lineas.length && !lineas[idx+1].includes(':')) {
+                provincia += " " + lineas[idx+1].trim();
+            }
+        }
+        if (lower.includes('postal') || lower.includes('cod. postal')) {
+            const matchCp = linea.match(/(\d+)/);
+            if (matchCp) cp = matchCp[1];
+        }
+    }
+    return { localidad, provincia, cp };
+}
+
+function ordenarInformacion() {
+    const textoOriginal = document.getElementById('whatsapp').value;
+    if (!textoOriginal.trim()) {
+        alert('Por favor, pegá el texto de WhatsApp primero.');
+        return;
+    }
+
+    const dir = extraerDireccion(textoOriginal);
+    const locProvCp = extraerLocalidadYProvinciaYCP(textoOriginal);
+    const contacto = extraerContacto(textoOriginal);
+    const telefono = extraerTelefono(textoOriginal);
+    const horario = extraerHorario(textoOriginal);
+    const bultos = extraerBultos(textoOriginal);
+    const mail = extraerMail(textoOriginal);
+
+    // Formato estructurado fijo requerido
+    const resultadoEstructurado = `Calle: ${dir.calle}
+Número: ${dir.numero}
+Localidad: ${locProvCp.localidad}
+Provincia: ${locProvCp.provincia}
+Código Postal: ${locProvCp.cp}
+Persona de contacto: ${contacto}
+Teléfono: ${telefono}
+Horario de retiro: ${horario}
+Cantidad de bultos/cajas: ${bultos}
+Mail de referencia: ${mail}`;
+
+    document.getElementById('textoOrdenado').value = resultadoEstructurado;
+}
+
+function mostrarInformacionOrdenada() {
+    // Función requerida por la arquitectura modular
+    ordenarInformacion();
+}
+
+
+// --- FUNCIONES EXISTENTES ADAPTADAS ---
+
 function obtenerCampo(texto, etiqueta) {
     const lineas = texto.split('\n');
     for (let linea of lineas) {
@@ -538,27 +763,37 @@ function procesarTextoInteligente() {
     const razonSocial = document.getElementById('razonSocial').value.trim() || "CLIENTE GENERAL";
     const pares = parseFloat(document.getElementById('pares').value) || 1;
     const qm = document.getElementById('qm').value.trim() || "S/N";
-    const textoOriginal = document.getElementById('whatsapp').value;
-
-    if (!textoOriginal) { alert('Por favor, pegá el texto de WhatsApp primero.'); return; }
+    
+    // MODIFICACIÓN REQUERIDA: Ahora lee únicamente del textarea de información ordenada
+    let textoOrdenado = document.getElementById('textoOrdenado').value;
+    
+    if (!textoOrdenado.trim()) {
+        // Si el usuario olvidó hacer clic en "Ordenar información", lo ejecutamos automáticamente
+        ordenarInformacion();
+        textoOrdenado = document.getElementById('textoOrdenado').value;
+        if (!textoOrdenado.trim()) {
+            alert('Por favor, ingresá el texto de WhatsApp y hacé clic en "Ordenar información".'); 
+            return; 
+        }
+    }
 
     const datos = {};
-    datos.calle = obtenerCampo(textoOriginal, "Calle");
-    datos.numero = obtenerCampo(textoOriginal, "Número");
-    datos.localidad = obtenerCampo(textoOriginal, "Localidad");
-    datos.provincia = obtenerCampo(textoOriginal, "Provincia");
-    datos.cp = obtenerCampo(textoOriginal, "Código Postal");
-    datos.contacto = obtenerCampo(textoOriginal, "Persona de contacto");
+    datos.calle = obtenerCampo(textoOrdenado, "Calle");
+    datos.numero = obtenerCampo(textoOrdenado, "Número");
+    datos.localidad = obtenerCampo(textoOrdenado, "Localidad");
+    datos.provincia = obtenerCampo(textoOrdenado, "Provincia");
+    datos.cp = obtenerCampo(textoOrdenado, "Código Postal");
+    datos.contacto = obtenerCampo(textoOrdenado, "Persona de contacto");
     
-    let telBruto = obtenerCampo(textoOriginal, "Teléfono");
+    let telBruto = obtenerCampo(textoOrdenado, "Teléfono");
     datos.telefono = telBruto.replace(/\D/g, "");
 
-    datos.horario = obtenerCampo(textoOriginal, "Horario de retiro");
+    datos.horario = obtenerCampo(textoOrdenado, "Horario de retiro");
     
-    let bultosBruto = obtenerCampo(textoOriginal, "Cantidad de bultos/cajas");
+    let bultosBruto = obtenerCampo(textoOrdenado, "Cantidad de bultos/cajas");
     datos.bultos = parseInt(bultosBruto) || 1;
 
-    datos.mail = obtenerCampo(textoOriginal, "Mail de referencia");
+    datos.mail = obtenerCampo(textoOrdenado, "Mail de referencia");
 
     const peso = (pares * 4.05).toFixed(2).replace('.', ',');
     const valorDeclarado = pares * 75000;
@@ -638,6 +873,7 @@ function limpiarCamposFormulario() {
     document.getElementById('pares').value = "1";
     document.getElementById('qm').value = "";
     document.getElementById('whatsapp').value = "";
+    document.getElementById('textoOrdenado').value = "";
     document.getElementById('resultBox').style.display = 'none';
     document.getElementById('outputLine').value = "";
 }
