@@ -20,6 +20,12 @@
             --green-500:#12b981;
             --green-600:#0ea371;
             --green-50:#e9faf3;
+            --amber-500:#f59e0b;
+            --amber-50:#fffbeb;
+            --amber-800:#92400e;
+            --red-500:#ef4444;
+            --red-50:#fef2f2;
+            --red-800:#991b1b;
             --white:#ffffff;
             --radius-lg:16px;
             --radius-md:10px;
@@ -44,11 +50,10 @@
         }
 
         .shell{
-            max-width: 760px;
+            max-width: 840px;
             margin: 0 auto;
         }
 
-        /* ---------- Header ---------- */
         .brand{
             display:flex;
             align-items:center;
@@ -81,7 +86,6 @@
             color: var(--slate-500);
         }
 
-        /* ---------- Step rail ---------- */
         .steps{
             display:flex;
             gap: 8px;
@@ -117,7 +121,6 @@
             color: var(--slate-700);
         }
 
-        /* ---------- Card ---------- */
         .card{
             background: var(--white);
             border: 1px solid var(--slate-200);
@@ -181,9 +184,7 @@
             transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
         }
         input::placeholder, textarea::placeholder{ color: #a3aebd; }
-
         input:hover, textarea:hover{ border-color: var(--slate-500); }
-
         input:focus, textarea:focus{
             outline: none;
             border-color: var(--navy-600);
@@ -205,18 +206,15 @@
             margin-bottom: 0;
         }
         .col{ flex: 1; }
-
         .field{ margin-bottom: 18px; }
         .field:last-child{ margin-bottom: 0; }
 
-        /* ---------- Actions container ---------- */
         .actions-row {
             display: flex;
             gap: 12px;
             margin-top: 4px;
         }
 
-        /* ---------- Buttons ---------- */
         button{
             font-family: var(--font);
             border: none;
@@ -253,7 +251,6 @@
             color: var(--slate-900);
         }
 
-        /* ---------- Result ---------- */
         .result-box{
             margin-top: 26px;
             display: none;
@@ -271,7 +268,7 @@
             display:flex;
             align-items:center;
             gap:10px;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
         .result-check{
             width: 24px; height:24px;
@@ -287,19 +284,72 @@
             font-weight:700;
             color: #0b5c40;
         }
-        .result-box > p{
-            font-size: 13px;
-            color: #2f6b53;
-            margin: 0 0 14px;
-            line-height: 1.5;
+
+        .alerts-container {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        .result-box b{ color:#0b5c40; }
+        .alert-item {
+            font-size: 12.5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .alert-item.warning {
+            background-color: var(--amber-50);
+            color: var(--amber-800);
+            border: 1px solid #fde68a;
+        }
+        .alert-item.success {
+            background-color: var(--green-50);
+            color: #0b5c40;
+            border: 1px solid #a7f3d0;
+        }
+
+        .preview-wrapper {
+            max-height: 220px;
+            overflow-x: auto;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid var(--slate-300);
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .preview-table th, .preview-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--slate-200);
+            border-right: 1px solid var(--slate-200);
+        }
+        .preview-table th {
+            background: var(--slate-100);
+            color: var(--slate-700);
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .preview-table td {
+            font-family: var(--font-mono);
+            color: var(--slate-900);
+        }
 
         #outputLine{
             background-color: #fff;
             font-weight: 600;
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 12px;
             width: 100%;
             padding: 12px 13px;
             border: 1px solid #b7ecd6;
@@ -416,12 +466,24 @@
                 <div class="result-check">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12L9 17L20 6" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
-                <h3>¡Fila generada con éxito!</h3>
+                <h3>Procesamiento completado</h3>
             </div>
-            <p>Hacé clic abajo para copiar. Después en SharePoint dale a <b>Pegar</b> (Ctrl + V) en la primera celda (Columna A).</p>
+            
+            <div id="alertsContainer" class="alerts-container"></div>
+
+            <label>Vista previa de columnas (Verificación antes de copiar):</label>
+            <div class="preview-wrapper">
+                <table class="preview-table" id="previewTable">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <label for="outputLine">Fila horizontal separada por TAB (Lista para SharePoint):</label>
             <input type="text" id="outputLine" readonly>
+            
             <button id="btnCopy" onclick="copiarContenido()" class="btn-copy">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="11" height="11" rx="2" stroke="#ffffff" stroke-width="2"/><path d="M5 15H4C3.44772 15 3 14.5523 3 14V4C3 3.44772 3.44772 3 4 3H14C14.5523 3 15 3.44772 15 4V5" stroke="#ffffff" stroke-width="2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="11" height="11" rx="2" stroke="#ffffff" stroke-width="2"/><path d="M5 15H4C3.44772 15 3 14.5523 3 14V4C3 3.44772 3.44772 3 14 3H14.5523 15 15 4V5" stroke="#ffffff" stroke-width="2"/></svg>
                 <span id="btnText">Copiar fila horizontal</span>
             </button>
         </div>
@@ -430,159 +492,126 @@
 </div>
 
 <script>
+function obtenerCampo(texto, etiqueta) {
+    const lineas = texto.split('\n');
+    for (let linea of lineas) {
+        if (linea.toLowerCase().startsWith(etiqueta.toLowerCase() + ':')) {
+            const partes = linea.split(':');
+            partes.shift();
+            return partes.join(':').trim();
+        }
+    }
+    return "";
+}
+
+function validarDatos(datos) {
+    const alertas = [];
+    
+    if (datos.calle) alertas.push({ tipo: 'success', texto: `✔ Calle encontrada: ${datos.calle}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: No se detectó la calle claramente.` });
+
+    if (datos.numero) alertas.push({ tipo: 'success', texto: `✔ Número encontrado: ${datos.numero}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: No se detectó la altura (número).` });
+
+    if (datos.localidad) alertas.push({ tipo: 'success', texto: `✔ Localidad encontrada: ${datos.localidad}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Falta la localidad.` });
+
+    if (datos.cp) alertas.push({ tipo: 'success', texto: `✔ Código Postal encontrado: ${datos.cp}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Falta el código postal.` });
+
+    if (datos.contacto) alertas.push({ tipo: 'success', texto: `✔ Contacto correcto: ${datos.contacto}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Contacto no detectado.` });
+
+    if (datos.telefono) alertas.push({ tipo: 'success', texto: `✔ Teléfono correcto: ${datos.telefono}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Teléfono no detectado.` });
+
+    if (datos.horario) alertas.push({ tipo: 'success', texto: `✔ Observaciones/Horario correcto: ${datos.horario}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Horario no detectado.` });
+
+    if (datos.mail) alertas.push({ tipo: 'success', texto: `✔ Mail correcto: ${datos.mail}` });
+    else alertas.push({ tipo: 'warning', texto: `⚠ Advertencia: Correo electrónico no detectado.` });
+
+    return alertas;
+}
+
 function procesarTextoInteligente() {
-    const razonSocial = document.getElementById('razonSocial').value.trim() || "Cliente";
-    const pares = parseFloat(document.getElementById('pares').value) || 0;
-    const qm = document.getElementById('qm').value.trim();
+    const razonSocial = document.getElementById('razonSocial').value.trim() || "CLIENTE GENERAL";
+    const pares = parseFloat(document.getElementById('pares').value) || 1;
+    const qm = document.getElementById('qm').value.trim() || "S/N";
     const textoOriginal = document.getElementById('whatsapp').value;
 
-    if (!textoOriginal) { alert('Por favor, pegá el texto primero.'); return; }
+    if (!textoOriginal) { alert('Por favor, pegá el texto de WhatsApp primero.'); return; }
 
-    const datos = {
-        calle: "",
-        numero: "",
-        localidad: "",
-        provincia: "BUENOS AIRES",
-        cp: "",
-        contacto: "",
-        telefono: "",
-        horario: "",
-        bultos: 1,
-        mail: ""
-    };
+    const datos = {};
+    datos.calle = obtenerCampo(textoOriginal, "Calle");
+    datos.numero = obtenerCampo(textoOriginal, "Número");
+    datos.localidad = obtenerCampo(textoOriginal, "Localidad");
+    datos.provincia = obtenerCampo(textoOriginal, "Provincia");
+    datos.cp = obtenerCampo(textoOriginal, "Código Postal");
+    datos.contacto = obtenerCampo(textoOriginal, "Persona de contacto");
+    
+    let telBruto = obtenerCampo(textoOriginal, "Teléfono");
+    datos.telefono = telBruto.replace(/\D/g, "");
 
-    let textoLimpio = textoOriginal
-        .replace(/(?:dirección\(detallada\)|dirección completa|dirección|direccion)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:localidad)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:provincia)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:código postal|codigo postal|cod\. postal|cp)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:nombre y teléfono de contacto|nombre y telefono de contacto|nombre y contacto)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:franja horaria disponible|rangos horarios retiro|horario disponible|horario)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:cantidad de bultos\/cajas|cantidad de bultos|bultos|cajas)\s*[:\-–—]\s*/i, "")
-        .replace(/(?:correo electrónico de referencia|correo electronico|mail de referencia|mail|email)\s*[:\-–—]\s*/i, "");
+    datos.horario = obtenerCampo(textoOriginal, "Horario de retiro");
+    
+    let bultosBruto = obtenerCampo(textoOriginal, "Cantidad de bultos/cajas");
+    datos.bultos = parseInt(bultosBruto) || 1;
 
-    const lineas = textoLimpio.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-    for (const lineaOriginal of lineas) {
-        const linea = lineaOriginal.trim();
-        if (!linea) continue;
-
-        if (linea.includes("@")) {
-            const matchMail = linea.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-            if (matchMail) {
-                datos.mail = matchMail[0].trim();
-            }
-            continue;
-        }
-
-        if (/lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo|hs|horas/i.test(linea)) {
-            datos.horario = linea;
-            continue;
-        }
-
-        if (/bulto|bultos|caja|cajas/i.test(linea)) {
-            const m = linea.match(/\d+/);
-            datos.bultos = m ? parseInt(m[0]) : 1;
-            continue;
-        }
-
-        // --- BLOQUE ACTUALIZADO ---
-        if (/\(\d{4}\)/.test(linea) || (/\d{4}/.test(linea) && !linea.includes("/"))) {
-            const cpMatch = linea.match(/\d{4}/);
-            if (cpMatch) {
-                datos.cp = cpMatch[0];
-                datos.localidad = linea
-                    .replace(/\(?\d{4}\)?/, "")
-                    .replace(/,/g, "")
-                    .replace(/[\(\)]/g, "")
-                    .trim()
-                    .toUpperCase();
-                continue;
-            }
-        }
-        // --------------------------
-
-        if (/(\+?54)?[\s\-\/]*\d{2,4}[\s\-\/]*\d{3,4}[\s\-\/]*\d{3,4}/.test(linea)) {
-            datos.telefono = linea.replace(/\D/g, "");
-            const matchSoloTel = linea.match(/(\+?54)?[\s\-\/]*\d{2,4}[\s\-\/]*\d{3,4}[\s\-\/]*\d{3,4}/);
-            if (matchSoloTel) {
-                datos.contacto = linea.replace(matchSoloTel[0], "").replace(/[\/\-\d()]+/g, "").trim();
-            }
-            continue;
-        }
-
-        if (!datos.contacto && /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/.test(linea) && linea.split(" ").length >= 2) {
-            datos.contacto = linea.trim();
-            continue;
-        }
-
-        if (!datos.calle && /^[A-Za-zÁÉÍÓÚÑáéíóúñ0-9 .,'-]+?\s\d{1,5}[A-Za-z]?$/.test(linea)) {
-            const m = linea.match(/^(.*?)[\s,]+(\d{1,5}[A-Za-z]?)$/);
-            if (m) {
-                datos.calle = m[1].trim();
-                datos.numero = m[2];
-            } else {
-                datos.calle = linea.trim();
-            }
-            continue;
-        }
-    }
-
-    for (let i = 0; i < lineas.length - 1; i++) {
-        if (!datos.contacto && /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/.test(lineas[i]) && /\d/.test(lineas[i+1]) && !lineas[i+1].includes("@")) {
-            datos.contacto = lineas[i].trim();
-            datos.telefono = lineas[i+1].replace(/\D/g, "");
-        }
-    }
-
-    if (!datos.calle && lineas.length > 0) {
-        const fallbackDir = lineas[0];
-        const m = fallbackDir.match(/^(.*?)[\s,]+(\d{1,5}[A-Za-z]?)$/);
-        if (m) {
-            datos.calle = m[1].trim();
-            datos.numero = m[2];
-        } else {
-            datos.calle = fallbackDir.trim();
-        }
-    }
-
-    if (datos.telefono.startsWith("549") && datos.telefono.length > 10) {
-        datos.telefono = datos.telefono.substring(3);
-    } else if (datos.telefono.startsWith("54") && datos.telefono.length > 10) {
-        datos.telefono = datos.telefono.substring(2);
-    }
+    datos.mail = obtenerCampo(textoOriginal, "Mail de referencia");
 
     const peso = (pares * 4.05).toFixed(2).replace('.', ',');
     const valorDeclarado = pares * 75000;
-    const provinciaLocalidadCP = `${datos.provincia.toUpperCase()} / ${datos.localidad.toUpperCase()} / ${datos.cp}`;
+    const provinciaLocalidadCP = `${datos.provincia} / ${datos.localidad} / ${datos.cp}`;
 
-    const fila = [
-        peso,
-        "1",
-        "1",
-        "1",
-        valorDeclarado,
-        datos.bultos,
-        qm,
-        qm,
-        "",
-        "",
-        datos.calle,
-        datos.numero,
-        "",
-        "",
-        provinciaLocalidadCP,
-        razonSocial,
-        datos.contacto || "Cliente",
-        "11111111",
-        datos.telefono,
-        datos.mail,
-        datos.horario || "Lunes a Viernes",
-        razonSocial
+    const filaColumnas = [
+        peso,                   // 0: Peso
+        "1",                    // 1: Alto
+        "1",                    // 2: Ancho
+        "1",                    // 3: Largo
+        valorDeclarado,         // 4: Valor Declarado
+        datos.bultos,           // 5: Cantidad Bultos
+        qm,                     // 6: QM
+        qm,                     // 7: Referencia Interna
+        "",                     // 8: Vacía
+        "",                     // 9: Vacía
+        datos.calle,            // 10: Calle
+        datos.numero,           // 11: Número
+        "",                     // 12: Piso/Depto
+        "",                     // 13: Observación Dirección
+        provinciaLocalidadCP,   // 14: Prov / Loc / CP
+        razonSocial,            // 15: Razón Social Remitente/Destinatario
+        datos.contacto,         // 16: Contacto
+        "11111111",             // 17: DNI / CUIT Fijo
+        datos.telefono,         // 18: Teléfono
+        datos.mail,             // 19: Mail
+        datos.horario,          // 20: Horarios (Observaciones)
+        razonSocial             // 21: Empresa
     ];
 
-    document.getElementById('outputLine').value = fila.join('\t');
-    document.getElementById('resultBox').style.width = '100%';
+    const alertas = validarDatos(datos);
+    const alertsContainer = document.getElementById('alertsContainer');
+    alertsContainer.innerHTML = "";
+    alertas.forEach(alerta => {
+        const div = document.createElement('div');
+        div.className = `alert-item ${alerta.tipo}`;
+        div.innerHTML = alerta.texto;
+        alertsContainer.appendChild(div);
+    });
+
+    const headersNombres = [
+        "Peso", "Alto", "Ancho", "Largo", "Val. Decl.", "Bultos", "QM", "Ref", 
+        "Col 9", "Col 10", "Calle", "Número", "Piso/Of", "Obs Dir", "Prov/Loc/CP", 
+        "Razón Social", "Contacto", "DNI/CUIT", "Teléfono", "Mail", "Observaciones", "Empresa"
+    ];
+    
+    const tableHead = document.querySelector('#previewTable thead');
+    const tableBody = document.querySelector('#previewTable tbody');
+    
+    tableHead.innerHTML = `<tr>${headersNombres.map(h => `<th>${h}</th>`).join('')}</tr>`;
+    tableBody.innerHTML = `<tr>${filaColumnas.map(val => `<td>${val !== "" ? val : '<span style="color:#cbd5e1">""</span>'}</td>`).join('')}</tr>`;
+
+    document.getElementById('outputLine').value = filaColumnas.join('\t');
     document.getElementById('resultBox').style.display = 'block';
 
     const btnCopy = document.getElementById("btnCopy");
